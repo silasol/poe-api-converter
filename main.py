@@ -11,7 +11,7 @@ from fastapi.responses import PlainTextResponse, StreamingResponse
 import poe
 from chatgpt_types import CompletionSSEResponse, SSEChoice, GPTRequest, SSEDelta
 
-file_path = os.path.abspath(sys.argv[0])
+file_path = os.path.abspath(__file__)
 file_dir = os.path.dirname(file_path)
 config_path = os.path.join(file_dir, "config.toml")
 config = toml.load(config_path)
