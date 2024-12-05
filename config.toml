@@ -1,0 +1,6 @@
+
+# the port to http server listen
+port = 3700
+
+# the timeout for poe api request
+poe-api-timeout = 10
