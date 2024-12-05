@@ -11,14 +11,22 @@ from fastapi.responses import PlainTextResponse, StreamingResponse
 import poe
 from chatgpt_types import CompletionSSEResponse, SSEChoice, GPTRequest, SSEDelta
 
+# Determine the environment
+env = os.getenv('ENV', 'development')
+
+# Set logging level based on environment
+if env == 'production':
+    logging.basicConfig(level=logging.INFO)
+else:
+    logging.basicConfig(level=logging.DEBUG)
+
+# load config file
 file_path = os.path.abspath(__file__)
 file_dir = os.path.dirname(file_path)
 config_path = os.path.join(file_dir, "config.toml")
 config = toml.load(config_path)
 
 app = FastAPI()
-
-logging.basicConfig(level=logging.DEBUG)
 
 need_auth_router = [
     "/chat/completions",
@@ -31,7 +39,7 @@ def get_auth_token(request: Request):
     authorization: str = request.headers.get("Authorization")
     if authorization:
         token = authorization.replace("Bearer ", "", 1)
-        logging.info(f"Extracted Token: {token}")
+        #logging.debug(f"Extracted Token: {token}")
         return token
     else:
         logging.error("Authorization token not found")
@@ -88,7 +96,7 @@ async def chat_completions(request: Request, gpt_request: GPTRequest):
             )
 
             resp = f"data: {json.dumps(sse_resp.to_dict())}\n\n"
-            logging.info(f"Response: {resp}")
+            logging.debug(f"Response: {resp.strip()}")
             yield resp
         yield "data: [DONE]\n\n"
 

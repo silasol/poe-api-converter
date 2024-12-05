@@ -48,7 +48,7 @@ async def stream_get_responses(api_key: str, messages: List[ProtocolMessage], bo
         yield "Not supported by this Model"
 
 
-async def add_token(token: str):
+async def check_token(token: str):
     if token not in client_dict:
         try:
             ret = await get_responses(token, "Please return “OK”", "Assistant")
@@ -63,13 +63,8 @@ async def add_token(token: str):
     else:
         return "exist"
 
-
-async def add_token_endpoint(token: str = Form(...)):
-    return await add_token(token)
-
-
 async def ask(token: str = Form(...), bot: str = Form(...), content: str = Form(...)):
-    await add_token(token)
+    await check_token(token)
     try:
         return await get_responses(token, content, bot)
     except Exception as e:
@@ -77,20 +72,3 @@ async def ask(token: str = Form(...), bot: str = Form(...), content: str = Form(
         logging.info(errmsg)
         return JSONResponse(status_code=400, content={"message": errmsg})
 
-
-async def websocket_endpoint(websocket: WebSocket):
-    try:
-        await websocket.accept()
-        token = await websocket.receive_text()
-        bot = await websocket.receive_text()
-        content = await websocket.receive_text()
-        await add_token(token)
-        async for ret in stream_get_responses(token, content, bot):
-            await websocket.send_text(ret)
-
-    except Exception as e:
-        errmsg = f"An exception of type {type(e).__name__} occurred. Arguments: {e.args}"
-        logging.info(errmsg)
-        await websocket.send_text(errmsg)
-    finally:
-        await websocket.close()
